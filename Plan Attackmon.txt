@@ -1,0 +1,3 @@
+Plan: Datenbank mit den 151 Pokemon und deren Attacken
+Umsetzung: Python Programm oder Website in der man das Pokemon bzw. die Attacke auswählen kann und ob es durch Level oder TM/VM erlernen kann  
+Für Website REST als API, Um auf die Datenbank zuzugreifen dann ODBC
