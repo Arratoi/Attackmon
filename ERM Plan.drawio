@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.0 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.3.0">
   <diagram name="Seite-1" id="Z6VAWDHt74BDtnAplVBC">
-    <mxGraphModel dx="2253" dy="2010" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2316" dy="2063" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -10,7 +10,7 @@
         <mxCell id="ceL9F5h0Lg8o_LI7ct0R-1" parent="1" style="whiteSpace=wrap;html=1;align=center;" value="Pokemon" vertex="1">
           <mxGeometry height="40" width="100" x="100" y="70" as="geometry" />
         </mxCell>
-        <mxCell id="ceL9F5h0Lg8o_LI7ct0R-2" parent="1" style="whiteSpace=wrap;html=1;align=center;" value="Level Attacken" vertex="1">
+        <mxCell id="ceL9F5h0Lg8o_LI7ct0R-2" parent="1" style="whiteSpace=wrap;html=1;align=center;" value="Level Attacke" vertex="1">
           <mxGeometry height="40" width="100" x="630" y="70" as="geometry" />
         </mxCell>
         <mxCell id="ceL9F5h0Lg8o_LI7ct0R-9" edge="1" parent="1" source="ceL9F5h0Lg8o_LI7ct0R-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" target="ceL9F5h0Lg8o_LI7ct0R-8">
