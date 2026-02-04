@@ -1,25 +1,6 @@
 import sqlite3
 from fastapi import FastAPI
-'''
-conn = sqlite3.connect("Attackmon.db")
-print(f"Opened SQLite database with version {sqlite3.sqlite_version} successfully.")
-cursor = conn.cursor()
-cursor.execute("""
-INSERT OR IGNORE INTO ZT_LVL (P_NR, ATT_NR, Level)
-VALUES
-    (1,33,1),
-    (1,45,1),
-    (1,73,7),
-    (1,22,13),
-    (1,77,20),
-    (1,75,27),
-    (1,74,34),
-    (1,79,41),
-    (1,76,48);
-""")'''
 
-#conn.commit()
-#conn.close()
 
 try:
     #with sqlite3.connect("Attackmon.db") as conn:
