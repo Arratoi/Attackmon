@@ -142,6 +142,7 @@ def page_all_attacks():
             ui.navigate.to('/')
         )
     )
+    search_bar = ui.input('Attacke suchen', placeholder='...').props('clearable')
     all_attack_table = ui.table(
         columns=[
             {'name': 'ATT_NR', 'label': 'Nr', 'field': 'ATT_NR', 'sortable': True},
@@ -153,5 +154,6 @@ def page_all_attacks():
         ],
         rows=load_all_attacks()
     ).classes('w-full mt-6')
+    search_bar.bind_value(all_attack_table, 'filter')
 
 ui.run(title='Attackmon')
