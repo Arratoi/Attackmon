@@ -135,7 +135,7 @@ def page_uwu():
 
 @ui.page('/all_attacks')
 def page_all_attacks():
-    ui.label('Alle Attacken uwu').classes('text-2xl font-bold mb-4')
+    ui.label('Alle Attacken').classes('text-2xl font-bold mb-4')
     ui.button(
         'spezifisches Pokemon anzeigen',
         on_click=lambda: (
