@@ -31,6 +31,6 @@ def insert_image(db_path: str, pokemon_name: str, image_path: str):
 if __name__ == "__main__":
     insert_image(
         db_path="Attackmon.db",
-        pokemon_name="Bisasam",
-        image_path="Bisasam.png"
+        pokemon_name="Schillok",
+        image_path="Bilder/Schillok.png"
     )
