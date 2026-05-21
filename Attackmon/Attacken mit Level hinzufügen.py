@@ -7,8 +7,8 @@ c.execute('''
 INSERT INTO ZT_LVL (Level, ATT_NR, P_NR)
 VALUES
 (
-'1',   
-'33',
+'7',   
+'73',
 '2'
 )
 ''')
