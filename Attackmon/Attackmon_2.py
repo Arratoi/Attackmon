@@ -143,6 +143,50 @@ def page_all_attacks():
         )
     )
     search_bar = ui.input('Attacke suchen', placeholder='...').props('clearable')
+
+    def filter_by_type(typ: str):
+        filtered = [
+            attack for attack in load_all_attacks()
+            if attack['Typ'] == typ
+        ]
+
+        all_attack_table.update_rows(filtered)
+
+    with ui.row().classes('gap-2'):
+        with ui.button(on_click=lambda: filter_by_type('Normal')).props('flat'):
+            ui.image('Bilder/Typen_Bilder/normal_type.png').classes('w-12')
+        with ui.button(on_click=lambda: filter_by_type('Feuer')).props('flat'):
+            ui.image('Bilder/Typen_Bilder/fire_type.png').classes('w-12')
+        with ui.button(on_click=lambda: filter_by_type('Wasser')).props('flat'):
+            ui.image('Bilder/Typen_Bilder/water_type.png').classes('w-12')
+        with ui.button(on_click=lambda: filter_by_type('Elektro')).props('flat'):
+            ui.image('Bilder/Typen_Bilder/electric_type.png').classes('w-12')
+        with ui.button(on_click=lambda: filter_by_type('Pflanze')).props('flat'):
+            ui.image('Bilder/Typen_Bilder/grass_type.png').classes('w-12')
+        with ui.button(on_click=lambda: filter_by_type('Flug')).props('flat'):
+            ui.image('Bilder/Typen_Bilder/flying_type.png').classes('w-12')
+        with ui.button(on_click=lambda: filter_by_type('Käfer')).props('flat'):
+            ui.image('Bilder/Typen_Bilder/bug_type.png').classes('w-12')
+        with ui.button(on_click=lambda: filter_by_type('Gift')).props('flat'):
+            ui.image('Bilder/Typen_Bilder/poison_type.png').classes('w-12')
+        with ui.button(on_click=lambda: filter_by_type('Gestein')).props('flat'):
+            ui.image('Bilder/Typen_Bilder/rock_type.png').classes('w-12')
+        with ui.button(on_click=lambda: filter_by_type('Boden')).props('flat'):
+            ui.image('Bilder/Typen_Bilder/ground_type.png').classes('w-12')
+        with ui.button(on_click=lambda: filter_by_type('Kampf')).props('flat'):
+            ui.image('Bilder/Typen_Bilder/fighting_type.png').classes('w-12')
+        with ui.button(on_click=lambda: filter_by_type('Eis')).props('flat'):
+            ui.image('Bilder/Typen_Bilder/ice_type.png').classes('w-12')
+        with ui.button(on_click=lambda: filter_by_type('Psycho')).props('flat'):
+            ui.image('Bilder/Typen_Bilder/psychic_type.png').classes('w-12')
+        with ui.button(on_click=lambda: filter_by_type('Geist')).props('flat'):
+            ui.image('Bilder/Typen_Bilder/ghost_type.png').classes('w-12')
+        with ui.button(on_click=lambda: filter_by_type('Drache')).props('flat'):
+            ui.image('Bilder/Typen_Bilder/dragon_type.png').classes('w-12')
+        with ui.button(
+                on_click=lambda: all_attack_table.update_rows(load_all_attacks())
+        ).props('outline'):
+            ui.label('Alle')
     all_attack_table = ui.table(
         columns=[
             {'name': 'ATT_NR', 'label': 'Nr', 'field': 'ATT_NR', 'sortable': True},
