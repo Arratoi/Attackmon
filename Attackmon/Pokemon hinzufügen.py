@@ -5,11 +5,11 @@ cur = conn.cursor()
 cur.execute('''
     Insert into Pokemon (P_NR, Name, Evolutionsstufe, Gewicht, Primärer_Typ, Sekundärer_Typ)
     VALUES (
-    '9', 
-    'Turtok', 
-    '3', 
-    '85,5',
-    'Wasser', 
+    '20', 
+    'Rattikarl', 
+    '2', 
+    '18,5',
+    'Normal', 
     '-')''')
 
 conn.commit()
