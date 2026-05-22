@@ -6,5 +6,6 @@ c.execute('''
 Select * FROM Pokemon''')
 for row in c.fetchall():
     print(row)
+
 conn.commit()
 conn.close()
