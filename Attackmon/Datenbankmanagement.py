@@ -27,10 +27,30 @@ def insert_image(db_path: str, pokemon_name: str, image_path: str):
 
     print(f"Bild für Pokémon '{pokemon_name}' erfolgreich gespeichert.")
 
+pokemon_liste = []
+with (open('pokemon_151.txt', 'r', encoding='utf-8')) as file:
+    for line in file:
+        if ';' in line:
+            value = line.split(';')[1].strip()
+            if value == "Name (Deutsch)":
+                pass
+            else:
+                pokemon_liste.append(value)
+
+ordner_pfad = 'C:/Users/tillmann.langer/Documents/AFBB/Attackmon/Attackmon/Attackmon/Bilder'
+bild_endungen = ('.png')
+bilder_liste = [datei for datei in os.listdir(ordner_pfad)
+                if datei.lower().endswith(bild_endungen)]
+
 
 if __name__ == "__main__":
-    insert_image(
-        db_path="Attackmon.db",
-        pokemon_name="Digda",
-        image_path="Bilder/Digda.png"
-    )
+    for pokemon in pokemon_liste:
+        bild_datei = f"{pokemon}.png"
+
+        bild_pfad = os.path.join(ordner_pfad, bild_datei)
+
+        insert_image(
+            db_path="Attackmon.db",
+            pokemon_name=pokemon,
+            image_path=bild_pfad
+        )
