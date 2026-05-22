@@ -1,6 +1,7 @@
 import sqlite3
 import base64
 from nicegui import ui
+from testi import pokemon_liste
 
 DB_PATH = 'Attackmon.db'
 
@@ -92,10 +93,8 @@ def page_uwu():
 
     with ui.row().classes('w-full items-start gap-8'):
         with ui.column().classes('gap-3'):
-            pokemon_select = ui.select(
-                options=list(pokemon_map.keys()),
-                label='Pokémon auswählen'
-            ).classes('w-64')
+            pokemon_select = ui.select(options=pokemon_liste, with_input=True
+          ).classes('w-64')
 
             ui.button(
                 'Alle Attacken anzeigen',
