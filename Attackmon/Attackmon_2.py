@@ -98,10 +98,12 @@ def load_all_attacks():
     ]
 
 @ui.page('/')
-def page_uwu():
+def page_pokemon():
     ui.label('Attackmon Datenbank').classes('text-2xl font-bold mb-4')
 
     pokemon_map = load_pokemon()
+    pokemon_names = list(pokemon_map.keys())
+    max_index = len(pokemon_names)
 
     with ui.row().classes('w-full items-start gap-8'):
         with ui.column().classes('gap-3'):
@@ -129,12 +131,28 @@ def page_uwu():
         rows=[]
     ).classes('w-full mt-4').style('table-layout: fixed;')
 
+    current_p_nr = {'value': 1}
+
+    def update_button():
+        if current_p_nr['value'] <= 1:
+            vor_button.set_visibility(False)
+        else:
+            vor_button.set_visibility(True)
+
+        if current_p_nr['value'] >= max_index:
+            naechst_button.set_visibility(False)
+        else:
+            naechst_button.set_visibility(True)
+
+
     def on_pokemon_change():
         name = pokemon_select.value
         if not name:
             return
 
         p_nr = pokemon_map[name]
+
+        current_p_nr['value'] = p_nr
 
         attack_table.update_rows(load_attacks_for_pokemon(p_nr))
 
@@ -150,8 +168,73 @@ def page_uwu():
         elif version == 'Beide':
             pokemon_image.style('border: 6px solid; border-image: linear-gradient(to right, red 50%, blue 50%) 1')
 
+        update_button()
+
+    def vorheriges_pokemon():
+        p_nr = current_p_nr['value'] - 1
+        if p_nr < 1:
+            return
+
+        current_p_nr['value'] = p_nr
+        pokemon_names = list(pokemon_map.keys())
+        name = pokemon_names[p_nr - 1]
+        pokemon_select.value = name
+
+        attack_table.update_rows(load_attacks_for_pokemon(p_nr))
+
+        image_src = load_pokemon_image(p_nr)
+        pokemon_image.set_source(image_src or '')
+
+        version = load_pokemon_version(p_nr)
+
+        if version == 'Rot':
+            pokemon_image.style('border: 6px solid red; border-image: none;')
+        elif version == 'Blau':
+            pokemon_image.style('border: 6px solid blue; border-image: none;')
+        elif version == 'Beide':
+            pokemon_image.style('border: 6px solid; border-image: linear-gradient(to right, red 50%, blue 50%) 1')
+
+        update_button()
+
+    def naechstes_pokemon():
+        p_nr = current_p_nr['value'] + 1
+        if p_nr > max_index:
+            return
+
+        current_p_nr['value'] = p_nr
+
+        name = pokemon_names[p_nr - 1]
+        pokemon_select.value = name
+
+        attack_table.update_rows(load_attacks_for_pokemon(p_nr))
+
+        image_src = load_pokemon_image(p_nr)
+        pokemon_image.set_source(image_src or '')
+
+        version = load_pokemon_version(p_nr)
+
+        if version == 'Rot':
+            pokemon_image.style('border: 6px solid red; border-image: none;')
+        elif version == 'Blau':
+            pokemon_image.style('border: 6px solid blue; border-image: none;')
+        elif version == 'Beide':
+            pokemon_image.style('border: 6px solid; border-image: linear-gradient(to right, red 50%, blue 50%) 1')
+
+        update_button()
+
     pokemon_select.on('update:model-value', on_pokemon_change)
     pokemon_select.on('keydown.enter', lambda e: on_pokemon_change())
+
+    with ui.row().classes('w-full items-center mt-4'):
+        vor_button = ui.button(
+            '← Vorheriges Pokemon',
+            on_click=vorheriges_pokemon
+        )
+        ui.element('div').classes('flex-1')
+        naechst_button = ui.button(
+            'Nächstes Pokemon →',
+            on_click=naechstes_pokemon
+        )
 
 @ui.page('/all_attacks')
 def page_all_attacks():
@@ -178,33 +261,33 @@ def page_all_attacks():
             with ui.button(on_click=lambda: filter_by_type('Normal')).props('flat'):
                 ui.image('Bilder/Typen_Bilder/normal_type.png').classes('w-12')
             with ui.button(on_click=lambda: filter_by_type('Feuer')).props('flat'):
-                ui.image('Bilder/Typen_Bilder/fire_type.png').classes('w-12')
+                ui.image('Bilder/Typen_Bilder/feuer_type.png').classes('w-12')
             with ui.button(on_click=lambda: filter_by_type('Wasser')).props('flat'):
-                ui.image('Bilder/Typen_Bilder/water_type.png').classes('w-12')
+                ui.image('Bilder/Typen_Bilder/wasser_type.png').classes('w-12')
             with ui.button(on_click=lambda: filter_by_type('Elektro')).props('flat'):
-                ui.image('Bilder/Typen_Bilder/electric_type.png').classes('w-12')
+                ui.image('Bilder/Typen_Bilder/elektro_type.png').classes('w-12')
             with ui.button(on_click=lambda: filter_by_type('Pflanze')).props('flat'):
-                ui.image('Bilder/Typen_Bilder/grass_type.png').classes('w-12')
+                ui.image('Bilder/Typen_Bilder/pflanze_type.png').classes('w-12')
             with ui.button(on_click=lambda: filter_by_type('Flug')).props('flat'):
-                ui.image('Bilder/Typen_Bilder/flying_type.png').classes('w-12')
+                ui.image('Bilder/Typen_Bilder/flug_type.png').classes('w-12')
             with ui.button(on_click=lambda: filter_by_type('Käfer')).props('flat'):
-                ui.image('Bilder/Typen_Bilder/bug_type.png').classes('w-12')
+                ui.image('Bilder/Typen_Bilder/kaefer_type.png').classes('w-12')
             with ui.button(on_click=lambda: filter_by_type('Gift')).props('flat'):
-                ui.image('Bilder/Typen_Bilder/poison_type.png').classes('w-12')
+                ui.image('Bilder/Typen_Bilder/gift_type.png').classes('w-12')
             with ui.button(on_click=lambda: filter_by_type('Gestein')).props('flat'):
-                ui.image('Bilder/Typen_Bilder/rock_type.png').classes('w-12')
+                ui.image('Bilder/Typen_Bilder/gestein_type.png').classes('w-12')
             with ui.button(on_click=lambda: filter_by_type('Boden')).props('flat'):
-                ui.image('Bilder/Typen_Bilder/ground_type.png').classes('w-12')
+                ui.image('Bilder/Typen_Bilder/boden_type.png').classes('w-12')
             with ui.button(on_click=lambda: filter_by_type('Kampf')).props('flat'):
-                ui.image('Bilder/Typen_Bilder/fighting_type.png').classes('w-12')
+                ui.image('Bilder/Typen_Bilder/kampf_type.png').classes('w-12')
             with ui.button(on_click=lambda: filter_by_type('Eis')).props('flat'):
-                ui.image('Bilder/Typen_Bilder/ice_type.png').classes('w-12')
+                ui.image('Bilder/Typen_Bilder/eis_type.png').classes('w-12')
             with ui.button(on_click=lambda: filter_by_type('Psycho')).props('flat'):
-                ui.image('Bilder/Typen_Bilder/psychic_type.png').classes('w-12')
+                ui.image('Bilder/Typen_Bilder/psycho_type.png').classes('w-12')
             with ui.button(on_click=lambda: filter_by_type('Geist')).props('flat'):
-                ui.image('Bilder/Typen_Bilder/ghost_type.png').classes('w-12')
+                ui.image('Bilder/Typen_Bilder/geist_type.png').classes('w-12')
             with ui.button(on_click=lambda: filter_by_type('Drache')).props('flat'):
-                ui.image('Bilder/Typen_Bilder/dragon_type.png').classes('w-12')
+                ui.image('Bilder/Typen_Bilder/drache_type.png').classes('w-12')
 
         ui.space()
 
