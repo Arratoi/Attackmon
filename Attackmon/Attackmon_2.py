@@ -10,46 +10,33 @@ def get_connection():
     conn.execute('PRAGMA foreign_keys = ON;')
     return conn
 
-
-def load_pokemon():
+def query_db(query: str, params=()):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT P_NR, Name FROM Pokemon ORDER BY P_NR;")
+    cur.execute(query, params)
     rows = cur.fetchall()
     conn.close()
+    return rows
+
+def load_pokemon():
+    rows = query_db("SELECT P_NR, Name FROM Pokemon ORDER BY P_NR;")
     return {name: p_nr for p_nr, name in rows}
 
-
 def load_pokemon_image(p_nr: int) -> str | None:
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT Bild FROM Pokemon WHERE P_NR = ?;", (p_nr,))
-    row = cur.fetchone()
-    conn.close()
+    rows = query_db("SELECT Bild FROM Pokemon WHERE P_NR = ?", (p_nr,))
 
-    if row is None or row[0] is None:
+    if not rows or not rows[0][0]:
         return None
 
-    encoded = base64.b64encode(row[0]).decode('utf-8')
+    encoded = base64.b64encode(rows[0][0]).decode('utf-8')
     return f'data:image/png;base64,{encoded}'
 
 def load_pokemon_version(p_nr: int) -> str | None:
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT Version FROM Pokemon WHERE P_NR = ?", (p_nr,))
-
-    row = cur.fetchone()
-    conn.close()
-
-    if row:
-        return row[0]
-
-    return None
+    rows = query_db("SELECT Version FROM Pokemon WHERE P_NR = ?", (p_nr,))
+    return rows[0][0] if rows else None
 
 def load_attacks_for_pokemon(p_nr: int):
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("""
+    rows = query_db("""
         SELECT
             Level_Attacke.Name,
             Level_Attacke.Typ,
@@ -59,8 +46,6 @@ def load_attacks_for_pokemon(p_nr: int):
         WHERE ZT_LVL.P_NR = ?
         ORDER BY ZT_LVL.Level;
     """, (p_nr,))
-    rows = cur.fetchall()
-    conn.close()
 
     return [
         {'Attacke': name, 'Typ': typ, 'Level': level}
@@ -69,9 +54,7 @@ def load_attacks_for_pokemon(p_nr: int):
 
 
 def load_all_attacks():
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("""
+    rows = query_db("""
         SELECT
             ATT_NR,
             Name,
@@ -82,8 +65,6 @@ def load_all_attacks():
         FROM Level_Attacke
         ORDER BY ATT_NR;
     """)
-    rows = cur.fetchall()
-    conn.close()
 
     return [
         {
@@ -134,16 +115,8 @@ def page_pokemon():
     current_p_nr = {'value': 1}
 
     def update_button():
-        if current_p_nr['value'] <= 1:
-            vor_button.set_visibility(False)
-        else:
-            vor_button.set_visibility(True)
-
-        if current_p_nr['value'] >= max_index:
-            naechst_button.set_visibility(False)
-        else:
-            naechst_button.set_visibility(True)
-
+        vor_button.set_visibility(current_p_nr['value'] > 1)
+        naechst_button.set_visibility(current_p_nr['value'] < max_index)
 
     def on_pokemon_change():
         name = pokemon_select.value
@@ -151,23 +124,9 @@ def page_pokemon():
             return
 
         p_nr = pokemon_map[name]
-
         current_p_nr['value'] = p_nr
 
-        attack_table.update_rows(load_attacks_for_pokemon(p_nr))
-
-        image_src = load_pokemon_image(p_nr)
-        pokemon_image.set_source(image_src or '')
-
-        version = load_pokemon_version(p_nr)
-
-        if version == 'Rot':
-            pokemon_image.style('border: 6px solid red; border-image: none;')
-        elif version == 'Blau':
-            pokemon_image.style('border: 6px solid blue; border-image: none;')
-        elif version == 'Beide':
-            pokemon_image.style('border: 6px solid; border-image: linear-gradient(to right, red 50%, blue 50%) 1')
-
+        update_pokemon_view(p_nr)
         update_button()
 
     def vorheriges_pokemon():
@@ -176,25 +135,8 @@ def page_pokemon():
             return
 
         current_p_nr['value'] = p_nr
-        pokemon_names = list(pokemon_map.keys())
-        name = pokemon_names[p_nr - 1]
-        pokemon_select.value = name
-
-        attack_table.update_rows(load_attacks_for_pokemon(p_nr))
-
-        image_src = load_pokemon_image(p_nr)
-        pokemon_image.set_source(image_src or '')
-
-        version = load_pokemon_version(p_nr)
-
-        if version == 'Rot':
-            pokemon_image.style('border: 6px solid red; border-image: none;')
-        elif version == 'Blau':
-            pokemon_image.style('border: 6px solid blue; border-image: none;')
-        elif version == 'Beide':
-            pokemon_image.style('border: 6px solid; border-image: linear-gradient(to right, red 50%, blue 50%) 1')
-
-        update_button()
+        pokemon_select.value = pokemon_names[p_nr - 1]
+        update_pokemon_view(p_nr)
 
     def naechstes_pokemon():
         p_nr = current_p_nr['value'] + 1
@@ -202,10 +144,10 @@ def page_pokemon():
             return
 
         current_p_nr['value'] = p_nr
+        pokemon_select.value = pokemon_names[p_nr - 1]
+        update_pokemon_view(p_nr)
 
-        name = pokemon_names[p_nr - 1]
-        pokemon_select.value = name
-
+    def update_pokemon_view(p_nr: int):
         attack_table.update_rows(load_attacks_for_pokemon(p_nr))
 
         image_src = load_pokemon_image(p_nr)
