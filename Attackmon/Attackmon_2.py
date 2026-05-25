@@ -33,6 +33,18 @@ def load_pokemon_image(p_nr: int) -> str | None:
     encoded = base64.b64encode(row[0]).decode('utf-8')
     return f'data:image/png;base64,{encoded}'
 
+def load_pokemon_version(p_nr: int) -> str | None:
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT Version FROM Pokemon WHERE P_NR = ?", (p_nr,))
+
+    row = cur.fetchone()
+    conn.close()
+
+    if row:
+        return row[0]
+
+    return None
 
 def load_attacks_for_pokemon(p_nr: int):
     conn = get_connection()
@@ -104,7 +116,7 @@ def page_uwu():
             )
 
         pokemon_image = ui.image().classes(
-            'w-48 h-48 object-contain border rounded shadow ml-auto'
+            'w-48 h-48 object-contain rounded shadow ml-auto'
         )
 
 
@@ -129,8 +141,17 @@ def page_uwu():
         image_src = load_pokemon_image(p_nr)
         pokemon_image.set_source(image_src or '')
 
+        version = load_pokemon_version(p_nr)
+
+        if version == 'Rot':
+            pokemon_image.style('border: 6px solid red; border-image: none;')
+        elif version == 'Blau':
+            pokemon_image.style('border: 6px solid blue; border-image: none;')
+        elif version == 'Beide':
+            pokemon_image.style('border: 6px solid; border-image: linear-gradient(to right, red 50%, blue 50%) 1')
 
     pokemon_select.on('update:model-value', on_pokemon_change)
+    pokemon_select.on('keydown.enter', lambda e: on_pokemon_change())
 
 @ui.page('/all_attacks')
 def page_all_attacks():
@@ -141,7 +162,7 @@ def page_all_attacks():
             ui.navigate.to('/')
         )
     )
-    search_bar = ui.input('Attacke suchen', placeholder='...').props('clearable')
+    search_bar = ui.input('Attacke suchen', placeholder='Attacke').props('clearable')
 
     def filter_by_type(typ: str):
         filtered = [
