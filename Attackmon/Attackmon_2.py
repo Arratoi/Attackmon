@@ -2,6 +2,71 @@ import sqlite3
 import base64
 from nicegui import ui
 from testi import pokemon_liste
+from ui_stil import TYPE_THEMES
+
+def apply_theme(typ: str):
+    theme = TYPE_THEMES.get(
+        typ,
+        TYPE_THEMES['Normal']
+    )
+    ui.colors(
+        primary=theme['primary']
+    )
+    ui.add_head_html(f'''
+    <style>
+
+    body {{
+        background:
+            {theme["background"]};
+    }}
+
+    .q-btn {{
+        background: {theme["primary"]} !important;
+    }}
+    
+    .q-btn,
+    .q-btn .block,
+    .q-btn__content {{
+        color: black !important;
+    }}
+
+    .q-btn:hover {{
+        filter: brightness(0.9);
+    }}
+
+    .q-tab--active {{
+        background:
+            {theme["primary"]} !important;
+    }}
+    
+    .q-table thead tr {{
+    background:
+        {theme["header"]} !important;
+    }}
+    
+    .q-table tbody tr:hover {{
+    background:
+        {theme["hover"]} !important;
+    }}
+    
+    .q-field__control {{
+
+    background:
+        {theme["background"]} !important;
+
+    box-shadow:
+        none !important;
+    }}
+
+    .q-field__native {{
+    
+        color:
+            {theme["text"]} !important;
+    }}
+    
+
+    </style>
+    ''')
 
 DB_PATH = 'Attackmon.db'
 
@@ -9,6 +74,7 @@ def get_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.execute('PRAGMA foreign_keys = ON;')
     return conn
+
 
 def query_db(query: str, params=()):
     conn = get_connection()
@@ -18,9 +84,11 @@ def query_db(query: str, params=()):
     conn.close()
     return rows
 
+
 def load_pokemon():
     rows = query_db("SELECT P_NR, Name FROM Pokemon ORDER BY P_NR;")
     return {name: p_nr for p_nr, name in rows}
+
 
 def load_pokemon_image(p_nr: int) -> str | None:
     rows = query_db("SELECT Bild FROM Pokemon WHERE P_NR = ?", (p_nr,))
@@ -31,9 +99,28 @@ def load_pokemon_image(p_nr: int) -> str | None:
     encoded = base64.b64encode(rows[0][0]).decode('utf-8')
     return f'data:image/png;base64,{encoded}'
 
+
 def load_pokemon_version(p_nr: int) -> str | None:
     rows = query_db("SELECT Version FROM Pokemon WHERE P_NR = ?", (p_nr,))
     return rows[0][0] if rows else None
+
+def load_pokemon_types(p_nr: int):
+    rows = query_db("""
+        SELECT PrimaererTyp, SekundaererTyp
+        FROM Pokemon
+        WHERE P_NR = ?
+    """, (p_nr,))
+
+    if not rows:
+        return []
+
+    primaerer_typ, sekundaerer_typ = rows[0]
+    typen = []
+    if primaerer_typ:
+        typen.append(primaerer_typ)
+    if sekundaerer_typ:
+        typen.append(sekundaerer_typ)
+    return typen
 
 def load_attacks_for_pokemon(p_nr: int):
     rows = query_db("""
@@ -78,6 +165,7 @@ def load_all_attacks():
         for att_nr, name, typ, schadentyp, staerke, genauigkeit in rows
     ]
 
+
 @ui.page('/')
 def page_pokemon():
     ui.label('Attackmon Datenbank').classes('text-2xl font-bold mb-4')
@@ -86,10 +174,39 @@ def page_pokemon():
     pokemon_names = list(pokemon_map.keys())
     max_index = len(pokemon_names)
 
+    current_theme = TYPE_THEMES['Pflanze']
+
+    ui.add_head_html(f'''
+    <style>
+
+    body {{
+        background: {current_theme["background"]};
+    }}
+
+    .q-btn {{
+        background: {current_theme["primary"]} !important;
+        color: {current_theme["text"]} !important;
+    }}
+
+    .q-tab--active {{
+        background: {current_theme["primary"]} !important;
+    }}
+
+    .q-field__control {{
+        background: {current_theme["primary"]} !important;
+    }}
+
+    .q-table {{
+        background: rgba(255,255,255,0.45);
+    }}
+
+    </style>
+    ''')
+
     with ui.row().classes('w-full items-start gap-8'):
         with ui.column().classes('gap-3'):
             pokemon_select = ui.select(options=pokemon_liste, with_input=True
-          ).classes('w-64')
+                                       ).classes('w-64')
 
             ui.button(
                 'Alle Attacken anzeigen',
@@ -102,15 +219,28 @@ def page_pokemon():
             'w-48 h-48 object-contain rounded shadow ml-auto'
         )
 
+    with ui.tabs().classes('w-full') as tabs:
+        one = ui.tab('Attacken')
+        two = ui.tab('Fundorte')
+        three = ui.tab('Stats')
 
-    attack_table = ui.table(
-        columns=[
-            {'name': 'Attacke', 'label': 'Attacke', 'field': 'Attacke', 'sortable': True,'style':'width: 33%;text-align:left','headerStyle': 'text-align: left;'},
-            {'name': 'Typ', 'label': 'Typ', 'field': 'Typ', 'sortable': True,'style':'width: 33%; text-align: center','headerStyle': 'text-align: center;'},
-            {'name': 'Level', 'label': 'Level', 'field': 'Level', 'sortable': True,'style':'width: 33%; text-align: center','headerStyle': 'text-align: center;'},
-        ],
-        rows=[]
-    ).classes('w-full mt-4').style('table-layout: fixed;')
+    with ui.tab_panels(tabs, value=one).classes('w-full'):
+        with ui.tab_panel(one):
+            attack_table = ui.table(
+                columns=[
+                    {'name': 'Attacke', 'label': 'Attacke', 'field': 'Attacke', 'sortable': True,
+                     'style': 'width: 33%;text-align:left', 'headerStyle': 'text-align: left;'},
+                    {'name': 'Typ', 'label': 'Typ', 'field': 'Typ', 'sortable': True, 'style': 'width: 33%; text-align: center',
+                     'headerStyle': 'text-align: center;'},
+                    {'name': 'Level', 'label': 'Level', 'field': 'Level', 'sortable': True,
+                     'style': 'width: 33%; text-align: center', 'headerStyle': 'text-align: center;'},
+                ],
+                rows=[]
+            ).classes('w-full mt-4').style('table-layout: fixed;')
+        with ui.tab_panel(two):
+            ui.label('locations hier')
+        with ui.tab_panel(three):
+            ui.label('stats hier')
 
     current_p_nr = {'value': 1}
 
@@ -148,6 +278,10 @@ def page_pokemon():
         update_pokemon_view(p_nr)
 
     def update_pokemon_view(p_nr: int):
+        typen = load_pokemon_types(p_nr)
+        if typen:
+            apply_theme(typen[0])
+
         attack_table.update_rows(load_attacks_for_pokemon(p_nr))
 
         image_src = load_pokemon_image(p_nr)
@@ -178,6 +312,13 @@ def page_pokemon():
             on_click=naechstes_pokemon
         )
 
+    if pokemon_names:
+        pokemon_select.value = pokemon_names[0]
+        current_p_nr['value'] = pokemon_map[pokemon_names[0]]
+        update_pokemon_view(current_p_nr['value'])
+        update_button()
+
+
 @ui.page('/all_attacks')
 def page_all_attacks():
     ui.label('Alle Attacken').classes('text-2xl font-bold mb-4')
@@ -199,7 +340,6 @@ def page_all_attacks():
 
     with ui.row().classes('w-full items-center'):
         with ui.row().classes('gap-2'):
-
             with ui.button(on_click=lambda: filter_by_type('Normal')).props('flat'):
                 ui.image('Bilder/Typen_Bilder/normal_type.png').classes('w-12')
             with ui.button(on_click=lambda: filter_by_type('Feuer')).props('flat'):
@@ -237,7 +377,7 @@ def page_all_attacks():
                 on_click=lambda: all_attack_table.update_rows(load_all_attacks())
         ).props('outline'):
             ui.label('Alle')
-            
+
     all_attack_table = ui.table(
         columns=[
             {'name': 'ATT_NR', 'label': 'Nr', 'field': 'ATT_NR', 'sortable': True},
@@ -250,5 +390,6 @@ def page_all_attacks():
         rows=load_all_attacks()
     ).classes('w-full mt-6')
     search_bar.bind_value(all_attack_table, 'filter')
+
 
 ui.run(title='Attackmon')
