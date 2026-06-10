@@ -1,7 +1,7 @@
 TYPE_THEMES = {
 
     'Pflanze': {
-        'background': '#f1f8ee',
+        'background': '#eef6ee',
         'primary': '#b8d8b8',
         'secondary': '#b7d8b5',
         'header': '#a9d1a7',

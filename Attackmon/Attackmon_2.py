@@ -4,26 +4,48 @@ from nicegui import ui
 from testi import pokemon_liste
 from ui_stil import TYPE_THEMES
 
-def apply_theme(typ: str):
-    theme = TYPE_THEMES.get(
-        typ,
-        TYPE_THEMES['Normal']
+def apply_theme(primary_typ: str, secondary_typ: str | None = None):
+    primary_theme = TYPE_THEMES.get(primary_typ, TYPE_THEMES['Normal'])
+    secondary_theme = TYPE_THEMES.get(
+        secondary_typ,
+        primary_theme
     )
-    ui.colors(
-        primary=theme['primary']
-    )
-    ui.add_head_html(f'''
-    <style>
 
+    ui.colors(primary=primary_theme['primary'], secondary=primary_theme['primary'])
+
+    if secondary_typ:
+        button_bg = secondary_theme['primary']
+    else:
+        button_bg = primary_theme['primary']
+    table_hover = primary_theme['hover']
+
+    ui.add_head_html(f"""
+    <style>
     body {{
-        background:
-            {theme["background"]};
+        background: {primary_theme["background"]};
     }}
 
     .q-btn {{
-        background: {theme["primary"]} !important;
+    background: transparent !important;
+    color: black !important;
+    position: relative;
+    overflow: hidden;
     }}
-    
+
+    .q-btn::before {{
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: {button_bg} !important;
+        z-index: 0;
+    }}
+
+    .q-btn .q-btn__content {{
+        position: relative;
+        z-index: 1;
+        color: black !important;
+    }}
+
     .q-btn,
     .q-btn .block,
     .q-btn__content {{
@@ -34,39 +56,25 @@ def apply_theme(typ: str):
         filter: brightness(0.9);
     }}
 
-    .q-tab--active {{
-        background:
-            {theme["primary"]} !important;
-    }}
-    
     .q-table thead tr {{
-    background:
-        {theme["header"]} !important;
+        background: {primary_theme["header"]} !important;
     }}
-    
+
     .q-table tbody tr:hover {{
-    background:
-        {theme["hover"]} !important;
+         background: {secondary_theme['hover'] if secondary_typ else primary_theme['hover']} !important;
     }}
-    
+
     .q-field__control {{
-
-    background:
-        {theme["background"]} !important;
-
-    box-shadow:
-        none !important;
+        background: {primary_theme["background"]} !important;
+        box-shadow: none !important;
     }}
 
     .q-field__native {{
-    
-        color:
-            {theme["text"]} !important;
+        color: {primary_theme["text"]} !important;
     }}
-    
 
     </style>
-    ''')
+    """)
 
 DB_PATH = 'Attackmon.db'
 
@@ -165,43 +173,24 @@ def load_all_attacks():
         for att_nr, name, typ, schadentyp, staerke, genauigkeit in rows
     ]
 
-
 @ui.page('/')
+def start_page():
+    with ui.dialog() as dialog, ui.card():
+        ui.input('Name')
+        ui.button('Close', on_click=dialog.close)
+
+    ui.button('Trainer hinzufügen', on_click=dialog.open)
+    ui.button('pokemon', on_click=lambda: ui.navigate.to('/pokemon'))
+    ui.button('attacken', on_click=lambda: ui.navigate.to('/all_attacks'))
+
+
+@ui.page('/pokemon')
 def page_pokemon():
     ui.label('Attackmon Datenbank').classes('text-2xl font-bold mb-4')
 
     pokemon_map = load_pokemon()
     pokemon_names = list(pokemon_map.keys())
     max_index = len(pokemon_names)
-
-    current_theme = TYPE_THEMES['Pflanze']
-
-    ui.add_head_html(f'''
-    <style>
-
-    body {{
-        background: {current_theme["background"]};
-    }}
-
-    .q-btn {{
-        background: {current_theme["primary"]} !important;
-        color: {current_theme["text"]} !important;
-    }}
-
-    .q-tab--active {{
-        background: {current_theme["primary"]} !important;
-    }}
-
-    .q-field__control {{
-        background: {current_theme["primary"]} !important;
-    }}
-
-    .q-table {{
-        background: rgba(255,255,255,0.45);
-    }}
-
-    </style>
-    ''')
 
     with ui.row().classes('w-full items-start gap-8'):
         with ui.column().classes('gap-3'):
@@ -212,6 +201,12 @@ def page_pokemon():
                 'Alle Attacken anzeigen',
                 on_click=lambda: (
                     ui.navigate.to('/all_attacks')
+                )
+            )
+            ui.button(
+                'Trainer hihi',
+                on_click=lambda: (
+                    ui.navigate.to('/')
                 )
             )
 
@@ -279,8 +274,9 @@ def page_pokemon():
 
     def update_pokemon_view(p_nr: int):
         typen = load_pokemon_types(p_nr)
-        if typen:
-            apply_theme(typen[0])
+        primary = typen[0] if len(typen) > 0 else 'Normal'
+        secondary = typen[1] if len(typen) > 1 else None
+        apply_theme(primary)
 
         attack_table.update_rows(load_attacks_for_pokemon(p_nr))
 
@@ -324,6 +320,12 @@ def page_all_attacks():
     ui.label('Alle Attacken').classes('text-2xl font-bold mb-4')
     ui.button(
         'spezifisches Pokemon anzeigen',
+        on_click=lambda: (
+            ui.navigate.to('/pokemon')
+        )
+    )
+    ui.button(
+        'Trainer',
         on_click=lambda: (
             ui.navigate.to('/')
         )
