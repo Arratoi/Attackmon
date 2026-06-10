@@ -1,3 +1,2 @@
 nicegui
 pysqlite3
-pybase64
