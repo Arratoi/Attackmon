@@ -179,18 +179,166 @@ def page_pokemon():
         ui.label('Attackmon Datenbank').classes('text-2xl font-bold mb-4')
         ui.space()
         with ui.dialog() as dialog, ui.card():
-            trainer_name = ui.input('Name')
+            trainer_team = []
+            trainer_name = ui.input('Trainername')
+
+            trainer_pokemon_select = ui.select(
+                options=pokemon_liste,
+                with_input=True
+            ).classes('w-64')
+
+            pokemon_level = ui.number(
+                'Level',
+                min=1,
+                max=100,
+                value=5
+            )
+
+            team_table = ui.table(
+                columns=[
+                    {
+                        'name': 'pokemon',
+                        'label': 'Pokemon',
+                        'field': 'pokemon'
+                    },
+                    {
+                        'name': 'level',
+                        'label': 'Level',
+                        'field': 'level'
+                    }
+                ],
+                rows=[]
+            ).classes('w-full')
+
+            def add_pokemon_to_team():
+                if not trainer_pokemon_select.value:
+                    ui.notify(
+                        'Bitte ein Pokemon auswählen',
+                        color='negative'
+                    )
+                    return
+
+                if len(trainer_team) >= 6:
+                    ui.notify(
+                        'Maximal 6 Pokemon erlaubt',
+                        color='negative'
+                    )
+                    return
+
+                trainer_team.append({
+                    'pokemon': trainer_pokemon_select.value,
+                    'level': int(pokemon_level.value)
+                })
+
+                team_table.update_rows(trainer_team)
+
+            ui.button(
+                'Pokemon zum Team hinzufügen',
+                on_click=add_pokemon_to_team
+            )
 
             def add_trainer():
+                if not trainer_name.value:
+                    ui.notify(
+                        'Bitte einen Trainernamen eingeben',
+                        color='negative'
+                    )
+                    return
+
+                if len(trainer_team) == 0:
+                    ui.notify(
+                        'Bitte mindestens ein Pokemon hinzufügen',
+                        color='negative'
+                    )
+                    return
+
                 conn = get_connection()
                 cur = conn.cursor()
 
-                cur.execute(
-                    "INSERT INTO Trainer (Name) VALUES (?)",
-                    (trainer_name.value,)
-                )
-                conn.commit()
-                conn.close()
+                try:
+                    cur.execute(
+                        """
+                        SELECT Trainer_ID
+                        FROM Trainer
+                        WHERE Name = ?
+                        """,
+                        (trainer_name.value,)
+                    )
+
+                    trainer = cur.fetchone()
+                    if trainer:
+                        trainer_id = trainer[0]
+                    else:
+                        cur.execute(
+                            """
+                            INSERT INTO Trainer (Name)
+                            VALUES (?)
+                            """,
+                            (trainer_name.value,)
+                        )
+
+                        trainer_id = cur.lastrowid
+
+                    cur.execute(
+                        """
+                        SELECT COUNT(*)
+                        FROM Trainer_Pokemon
+                        WHERE Trainer_ID = ?
+                        """,
+                        (trainer_id,)
+                    )
+
+                    vorhandene_pokemon = cur.fetchone()[0]
+                    if vorhandene_pokemon + len(trainer_team) > 6:
+                        freie_plaetze = 6 - vorhandene_pokemon
+
+                        ui.notify(
+                            f'Es sind nur noch {freie_plaetze} Plätze frei',
+                            color='negative'
+                        )
+                        return
+
+                    for eintrag in trainer_team:
+                        pokemon_name = eintrag['pokemon']
+                        level = eintrag['level']
+
+                        p_nr = pokemon_map[pokemon_name]
+
+                        cur.execute(
+                            """
+                            INSERT INTO Trainer_Pokemon
+                            (
+                                P_Nr,
+                                Trainer_ID,
+                                Level
+                            )
+                            VALUES (?, ?, ?)
+                            """,
+                            (
+                                p_nr,
+                                trainer_id,
+                                level
+                            )
+                        )
+
+                    conn.commit()
+
+                    ui.notify(
+                        'Trainer gespeichert',
+                        color='positive'
+                    )
+
+                    trainer_team.clear()
+                    team_table.update_rows([])
+
+                except Exception as e:
+                    print(e)
+                    ui.notify(
+                        str(e),
+                        color='negative'
+                    )
+                finally:
+                    conn.close()
 
             ui.button(
                 'Speichern',
@@ -199,8 +347,10 @@ def page_pokemon():
                     dialog.close()
                 )
             )
-
-            ui.button('Schließen', on_click=dialog.close)
+            ui.button(
+                'Schließen',
+                on_click=dialog.close
+            )
         ui.button('Trainer hinzufügen', on_click=dialog.open)
 
     pokemon_map = load_pokemon()
@@ -210,7 +360,7 @@ def page_pokemon():
     with ui.row().classes('w-full items-start gap-8'):
         with ui.column().classes('gap-3'):
             pokemon_select = ui.select(options=pokemon_liste, with_input=True
-                                       ).classes('w-64')
+                                               ).classes('w-64')
 
             ui.button(
                 'Alle Attacken anzeigen',
