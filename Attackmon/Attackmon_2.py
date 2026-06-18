@@ -174,19 +174,34 @@ def load_all_attacks():
     ]
 
 @ui.page('/')
-def start_page():
-    with ui.dialog() as dialog, ui.card():
-        ui.input('Name')
-        ui.button('Close', on_click=dialog.close)
-
-    ui.button('Trainer hinzufügen', on_click=dialog.open)
-    ui.button('pokemon', on_click=lambda: ui.navigate.to('/pokemon'))
-    ui.button('attacken', on_click=lambda: ui.navigate.to('/all_attacks'))
-
-
-@ui.page('/pokemon')
 def page_pokemon():
-    ui.label('Attackmon Datenbank').classes('text-2xl font-bold mb-4')
+    with ui.row().classes('w-full'):
+        ui.label('Attackmon Datenbank').classes('text-2xl font-bold mb-4')
+        ui.space()
+        with ui.dialog() as dialog, ui.card():
+            trainer_name = ui.input('Name')
+
+            def add_trainer():
+                conn = get_connection()
+                cur = conn.cursor()
+
+                cur.execute(
+                    "INSERT INTO Trainer (Name) VALUES (?)",
+                    (trainer_name.value,)
+                )
+                conn.commit()
+                conn.close()
+
+            ui.button(
+                'Speichern',
+                on_click=lambda: (
+                    add_trainer(),
+                    dialog.close()
+                )
+            )
+
+            ui.button('Schließen', on_click=dialog.close)
+        ui.button('Trainer hinzufügen', on_click=dialog.open)
 
     pokemon_map = load_pokemon()
     pokemon_names = list(pokemon_map.keys())
@@ -201,12 +216,6 @@ def page_pokemon():
                 'Alle Attacken anzeigen',
                 on_click=lambda: (
                     ui.navigate.to('/all_attacks')
-                )
-            )
-            ui.button(
-                'Trainer hihi',
-                on_click=lambda: (
-                    ui.navigate.to('/')
                 )
             )
 
@@ -275,7 +284,6 @@ def page_pokemon():
     def update_pokemon_view(p_nr: int):
         typen = load_pokemon_types(p_nr)
         primary = typen[0] if len(typen) > 0 else 'Normal'
-        secondary = typen[1] if len(typen) > 1 else None
         apply_theme(primary)
 
         attack_table.update_rows(load_attacks_for_pokemon(p_nr))
@@ -320,12 +328,6 @@ def page_all_attacks():
     ui.label('Alle Attacken').classes('text-2xl font-bold mb-4')
     ui.button(
         'spezifisches Pokemon anzeigen',
-        on_click=lambda: (
-            ui.navigate.to('/pokemon')
-        )
-    )
-    ui.button(
-        'Trainer',
         on_click=lambda: (
             ui.navigate.to('/')
         )
