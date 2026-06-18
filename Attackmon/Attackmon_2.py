@@ -147,6 +147,20 @@ def load_attacks_for_pokemon(p_nr: int):
         for name, typ, level in rows
     ]
 
+def load_locations(p_nr: int):
+    rows = query_db("""
+        SELECT 
+            Route,
+            Wahrscheinlichkeit,
+            LEVEL
+        FROM Fundorte 
+        WHERE P_NR = ?
+        """, (p_nr,))
+
+    return [
+        {'Route': route, 'Wahrscheinlichkeit': wahrscheinlichkeit, 'Level': level}
+        for route, wahrscheinlichkeit, level in rows
+    ]
 
 def load_all_attacks():
     rows = query_db("""
@@ -242,7 +256,17 @@ def page_pokemon():
                 rows=[]
             ).classes('w-full mt-4').style('table-layout: fixed;')
         with ui.tab_panel(two):
-            ui.label('locations hier')
+            fundorte_table=ui.table(
+                columns=[
+                    {'name': 'Route', 'label': 'Route', 'field': 'Route', 'sortable': True,
+                     'style': 'width: 33%;text-align:left', 'headerStyle': 'text-align: left;'},
+                    {'name': 'Wahrscheinlichkeit', 'label': 'Wahrscheinlichkeit', 'field': 'Wahrscheinlichkeit', 'sortable': True, 'style': 'width: 33%; text-align: center',
+                     'headerStyle': 'text-align: center;'},
+                    {'name': 'Level', 'label': 'Level', 'field': 'Level', 'sortable': True,
+                     'style': 'width: 33%; text-align: center', 'headerStyle': 'text-align: center;'},
+                ],
+                rows=[]
+            ).classes('w-full mt-4').style('table-layout: fixed;')
         with ui.tab_panel(three):
             ui.label('stats hier')
 
@@ -287,6 +311,7 @@ def page_pokemon():
         apply_theme(primary)
 
         attack_table.update_rows(load_attacks_for_pokemon(p_nr))
+        fundorte_table.update_rows(load_locations(p_nr))
 
         image_src = load_pokemon_image(p_nr)
         pokemon_image.set_source(image_src or '')
@@ -394,6 +419,5 @@ def page_all_attacks():
         rows=load_all_attacks()
     ).classes('w-full mt-6')
     search_bar.bind_value(all_attack_table, 'filter')
-
 
 ui.run(title='Attackmon')
